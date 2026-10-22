@@ -1,0 +1,36 @@
+# Describes the format for available Skylight services
+
+create_chore:
+  name: Create chore
+  description: Creates a new chore in Skylight with the specified details.
+  fields:
+    config_entry_id:
+      name: Config entry ID
+      description: The ID of the Skylight configuration entry to use. If not provided, the first configured account will be used.
+      required: false
+      example: "01234567890abcdef1234567890abcdef"
+      selector:
+        config_entry:
+          integration: skylight
+    summary:
+      name: Summary
+      description: The title or description of the chore.
+      required: true
+      example: "Load the dishwasher"
+      selector:
+        text:
+    emoji_icon:
+      name: Emoji icon
+      description: An emoji icon to represent the chore.
+      required: false
+      example: "🧺"
+      selector:
+        text:
+    category_id:
+      name: Category ID
+      description: The category ID to assign the chore to.
+      required: false
+      example: "12812432"
+      selector:
+        text:
+
