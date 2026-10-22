@@ -1,36 +1,60 @@
-# Describes the format for available Skylight services
-
 create_chore:
   name: Create chore
-  description: Creates a new chore in Skylight with the specified details.
+  description: Create a new chore on the Skylight calendar
   fields:
-    config_entry_id:
-      name: Config entry ID
-      description: The ID of the Skylight configuration entry to use. If not provided, the first configured account will be used.
-      required: false
-      example: "01234567890abcdef1234567890abcdef"
-      selector:
-        config_entry:
-          integration: skylight
     summary:
       name: Summary
-      description: The title or description of the chore.
+      description: The chore summary/title
       required: true
-      example: "Load the dishwasher"
       selector:
         text:
     emoji_icon:
       name: Emoji icon
-      description: An emoji icon to represent the chore.
+      description: Optional emoji icon
       required: false
-      example: "🧺"
       selector:
         text:
     category_id:
       name: Category ID
-      description: The category ID to assign the chore to.
+      description: Optional category/family member ID
       required: false
-      example: "12812432"
       selector:
         text:
 
+announce_chores:
+  name: Announce chores for person
+  description: Fetch pending Skylight chores for a family member and broadcast them over a speaker using TTS
+  fields:
+    person:
+      name: Person
+      description: Name of the family member on the Skylight chore chart (e.g. Hannah, Jakeb, Drew, Natalie, Carrie, Pheve, Willow)
+      required: true
+      example: "Hannah"
+      selector:
+        text:
+    media_player_entity_id:
+      name: Media Player
+      description: Speaker to announce over
+      required: false
+      default: "media_player.living_room_display"
+      selector:
+        entity:
+          domain: media_player
+    tts_entity_id:
+      name: TTS Engine
+      description: Text-to-speech engine entity
+      required: false
+      default: "tts.google_translate_en_com"
+      selector:
+        entity:
+          domain: tts
+    volume_level:
+      name: Volume Level
+      description: Speaker volume (0.0 to 1.0)
+      required: false
+      default: 0.5
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.05
