@@ -27,11 +27,50 @@ announce_chores:
   fields:
     person:
       name: Person
-      description: Name of the family member on the Skylight chore chart (e.g. Hannah, Jakeb, Drew, Natalie, Carrie, Pheve, Willow)
+      description: Name of the family member on the Skylight chore chart (Hannah, Jakeb, Drew, Natalie, Carrie, Pheve, Willow)
       required: true
       example: "Hannah"
       selector:
+        select:
+          options:
+            - "Hannah"
+            - "Jakeb"
+            - "Drew"
+            - "Natalie"
+            - "Carrie"
+            - "Pheve"
+            - "Willow"
+          custom_value: true
+    message_prefix:
+      name: Announcement Intro Text
+      description: Custom intro phrase spoken before reading out each chore
+      required: false
+      example: "Attention Hannah, this is your list of chores for the day"
+      selector:
         text:
+    target_date:
+      name: Target Date (Optional)
+      description: Specific YYYY-MM-DD date to filter chores for (leave blank to include all currently pending chores up to today)
+      required: false
+      selector:
+        date:
+    skip_if_empty:
+      name: Skip Announcement If No Chores
+      description: If enabled, nothing will be spoken when the person has zero pending chores
+      required: false
+      default: false
+      selector:
+        boolean:
+    volume_level:
+      name: Volume Level
+      description: Speaker volume (0.0 to 1.0, e.g. 0.5 for 50%)
+      required: false
+      default: 0.5
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.05
     media_player_entity_id:
       name: Media Player
       description: Speaker to announce over
@@ -48,13 +87,3 @@ announce_chores:
       selector:
         entity:
           domain: tts
-    volume_level:
-      name: Volume Level
-      description: Speaker volume (0.0 to 1.0)
-      required: false
-      default: 0.5
-      selector:
-        number:
-          min: 0
-          max: 1
-          step: 0.05
