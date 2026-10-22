@@ -21,8 +21,11 @@ from .const import (
     ATTR_CATEGORY_ID,
     ATTR_EMOJI_ICON,
     ATTR_MEDIA_PLAYER,
+    ATTR_MESSAGE_PREFIX,
     ATTR_PERSON,
+    ATTR_SKIP_IF_EMPTY,
     ATTR_SUMMARY,
+    ATTR_TARGET_DATE,
     ATTR_TTS_ENTITY,
     ATTR_VOLUME_LEVEL,
     CONF_FRAME_ID,
@@ -69,22 +72,30 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async def async_handle_announce_chores(call: ServiceCall) -> None:
         client = _get_client(hass, call.data.get("config_entry_id"))
         person = call.data[ATTR_PERSON].strip()
+        prefix = (
+            call.data.get(ATTR_MESSAGE_PREFIX)
+            or f"Attention {person}, this is your list of chores for the day"
+        ).strip().rstrip(":")
+        target_date = call.data.get(ATTR_TARGET_DATE)
+        skip_if_empty = bool(call.data.get(ATTR_SKIP_IF_EMPTY, False))
         media_player = call.data.get(ATTR_MEDIA_PLAYER, "media_player.living_room_display")
         tts_entity = call.data.get(ATTR_TTS_ENTITY, "tts.google_translate_en_com")
         volume = call.data.get(ATTR_VOLUME_LEVEL, 0.5)
 
         try:
-            tasks = await client.async_get_pending_chores_for_person(person)
+            tasks = await client.async_get_pending_chores_for_person(person, target_date)
         except (SkylightAuthError, SkylightConnectionError) as err:
             raise HomeAssistantError(f"Error fetching chores: {err}") from err
 
         if not tasks:
+            if skip_if_empty:
+                return
             msg = f"Attention {person}. You have no pending chores on the Skylight calendar for today."
         elif len(tasks) == 1:
-            msg = f"Attention {person}, this is your chore for the day: {tasks[0]}."
+            msg = f"{prefix}: {tasks[0]}."
         else:
             joined = ", ".join(tasks[:-1]) + f", and {tasks[-1]}"
-            msg = f"Attention {person}, this is your list of chores for the day: {joined}."
+            msg = f"{prefix}: {joined}."
 
         if volume is not None:
             await hass.services.async_call(
@@ -128,6 +139,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             {
                 vol.Optional("config_entry_id"): cv.string,
                 vol.Required(ATTR_PERSON): cv.string,
+                vol.Optional(ATTR_MESSAGE_PREFIX): cv.string,
+                vol.Optional(ATTR_TARGET_DATE): cv.string,
+                vol.Optional(ATTR_SKIP_IF_EMPTY, default=False): cv.boolean,
                 vol.Optional(ATTR_MEDIA_PLAYER, default="media_player.living_room_display"): cv.string,
                 vol.Optional(ATTR_TTS_ENTITY, default="tts.google_translate_en_com"): cv.string,
                 vol.Optional(ATTR_VOLUME_LEVEL, default=0.5): vol.Coerce(float),
