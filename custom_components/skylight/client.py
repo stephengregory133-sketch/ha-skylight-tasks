@@ -1,9 +1,9 @@
-"""Skylight API client supporting both Bearer token and legacy session auth."""
+"""Skylight API client supporting Bearer token and chore fetching."""
 
 from __future__ import annotations
 
 import base64
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 import aiohttp
@@ -40,7 +40,6 @@ class SkylightClient:
 
     async def async_login(self) -> None:
         """Authenticate with Skylight API using Bearer token or legacy session."""
-        # First try password directly as a Bearer token against the frame endpoint
         try:
             async with self._session.get(
                 f"{API_BASE_URL}/frames/{self._frame_id}",
@@ -56,7 +55,6 @@ class SkylightClient:
         except aiohttp.ClientError:
             pass
 
-        # Fallback to legacy /api/sessions
         try:
             async with self._session.post(
                 f"{API_BASE_URL}/sessions",
@@ -88,6 +86,54 @@ class SkylightClient:
             raise SkylightConnectionError(f"Connection error: {err}") from err
         except KeyError as err:
             raise SkylightAuthError(f"Unexpected response format: {err}") from err
+
+    async def async_get_pending_chores_for_person(self, person: str) -> list[str]:
+        """Fetch pending chores for a specific person/category label."""
+        if not self._auth_header:
+            await self.async_login()
+
+        headers = {
+            "Authorization": self._auth_header or f"Bearer {self._password}",
+            "Accept": "application/json",
+        }
+        try:
+            async with self._session.get(
+                f"{API_BASE_URL}/frames/{self._frame_id}/categories",
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as cat_resp:
+                cat_data = await cat_resp.json()
+                cat_map = {
+                    c["id"]: (c.get("attributes", {}).get("label") or "").strip()
+                    for c in cat_data.get("data", [])
+                }
+
+            after = (date.today() - timedelta(days=7)).isoformat()
+            before = date.today().isoformat()
+            async with self._session.get(
+                f"{API_BASE_URL}/frames/{self._frame_id}/chores",
+                params={"after": after, "before": before},
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as chore_resp:
+                chore_data = await chore_resp.json()
+
+            tasks: list[str] = []
+            for ch in chore_data.get("data", []):
+                attrs = ch.get("attributes", {})
+                if attrs.get("status") != "pending":
+                    continue
+                cid = (
+                    ch.get("relationships", {}).get("category", {}).get("data") or {}
+                ).get("id")
+                label = cat_map.get(cid, "")
+                if label.lower() == person.strip().lower():
+                    summary = (attrs.get("summary") or "").strip()
+                    if summary and summary not in tasks:
+                        tasks.append(summary)
+            return tasks
+        except aiohttp.ClientError as err:
+            raise SkylightConnectionError(f"Connection error: {err}") from err
 
     async def async_create_chore(
         self,
