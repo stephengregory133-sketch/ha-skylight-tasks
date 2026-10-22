@@ -1,0 +1,13 @@
+{
+  "domain": "skylight",
+  "name": "Skylight-Tasks",
+  "codeowners": ["@riyadchowdhury"],
+  "config_flow": true,
+  "documentation": "https://github.com/riyadchowdhury/ha-skylight-tasks",
+  "integration_type": "service",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/riyadchowdhury/ha-skylight-tasks/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}
+
