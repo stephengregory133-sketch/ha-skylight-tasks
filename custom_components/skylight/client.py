@@ -87,7 +87,9 @@ class SkylightClient:
         except KeyError as err:
             raise SkylightAuthError(f"Unexpected response format: {err}") from err
 
-    async def async_get_pending_chores_for_person(self, person: str) -> list[str]:
+    async def async_get_pending_chores_for_person(
+        self, person: str, target_date: str | None = None
+    ) -> list[str]:
         """Fetch pending chores for a specific person/category label."""
         if not self._auth_header:
             await self.async_login()
@@ -108,8 +110,13 @@ class SkylightClient:
                     for c in cat_data.get("data", [])
                 }
 
-            after = (date.today() - timedelta(days=7)).isoformat()
-            before = date.today().isoformat()
+            if target_date:
+                after = target_date
+                before = target_date
+            else:
+                after = (date.today() - timedelta(days=7)).isoformat()
+                before = date.today().isoformat()
+
             async with self._session.get(
                 f"{API_BASE_URL}/frames/{self._frame_id}/chores",
                 params={"after": after, "before": before},
