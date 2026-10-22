@@ -1,0 +1,52 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_account%]"
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "step": {
+      "user": {
+        "description": "Set up your Skylight account to integrate with Home Assistant.",
+        "data": {
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]",
+          "frame_id": "Frame ID"
+        },
+        "data_description": {
+          "username": "Your Skylight account email address.",
+          "password": "Your Skylight account password.",
+          "frame_id": "The Frame ID for your Skylight device (found in the Skylight app or API)."
+        }
+      }
+    }
+  },
+  "services": {
+    "create_chore": {
+      "name": "Create chore",
+      "description": "Creates a new chore in Skylight with the specified details.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config entry ID",
+          "description": "The ID of the Skylight configuration entry to use. If not provided, the first configured account will be used."
+        },
+        "summary": {
+          "name": "Summary",
+          "description": "The title or description of the chore."
+        },
+        "emoji_icon": {
+          "name": "Emoji icon",
+          "description": "An emoji icon to represent the chore."
+        },
+        "category_id": {
+          "name": "Category ID",
+          "description": "The category ID to assign the chore to."
+        }
+      }
+    }
+  }
+}
+
